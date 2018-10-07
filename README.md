@@ -4,3 +4,8 @@ Problem 1
 
 1.do some data cleaning
 2.Using this dataset, answer some questions based on calculation and make plots.
+
+
+Problem 2
+
+1.load the data from the p8105.datasets package and summarize the data

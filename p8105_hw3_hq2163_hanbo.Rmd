@@ -58,6 +58,7 @@ dist_loc %>%
     caption = "Data from the brfss_smart2010"
   )
 ```
+The number of observations in State jumps to above 40 in 2007 and 2010. The number of observations all the other states kept under 20 for the rest of the years.
 
 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State
 ```{r}
@@ -73,6 +74,8 @@ ny_mean_sd = summarise(excellent_ny,
                        excellent_sd = sd(data_value, na.rm = TRUE))
 ny_mean_sd
 ```
+The mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002 is 24% and 4.49%, in 2006 is 22.5% and 4%, in 2010 is 22.7% and 3.57%.
+
 
 each year and state, compute the average proportion and make a five-panel plot
 ```{r}
@@ -96,4 +99,17 @@ response_mean %>%
 
 
 
+##Problem 2
+
+```{r}
+# load the data from the p8105.datasets package and summarize the data
+data(instacart)
+summary(instacart)
+```
+A short description of the dataset: Instacart is an online grocery service that allows you to shop online from local stores. The dataset contains 1,384,617 observations and 15variables of 131,209 unique users, where each row in the dataset is a product from an order. There is a single order per user in this dataset. Key variables includes 1."order_dow":the day of the week on which the order was placed. It can help us to analyse which kind of products are sold best at what time and then Instacart get the info of promoting at that day 2.order_hour_of_day: the hour of the day on which the order was placed.Like we can analyze when to promote specific products 3.product_name: name of the product. 4.aisle: the name of the aisle
+
+
+```{r}
+summary()
+```
 
