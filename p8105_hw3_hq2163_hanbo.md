@@ -1,0 +1,103 @@
+p8105\_hw3\_hq2163\_hanbo
+================
+Hanbo Qiu
+October 7, 2018
+
+Problem 1
+---------
+
+``` r
+#Use code "data(package = "p8105.datasets")" to find the name of target dataset and load it.
+
+data(brfss_smart2010)
+
+#Create an overall_health dataset and focus on the “Overall Health” topic and organize responses as a factor taking levels from “Excellent” to “Poor”.
+
+overall_health = janitor::clean_names(brfss_smart2010) %>% 
+  filter(topic == "Overall Health") %>% 
+  mutate(response = factor(response, levels = c("Excellent", "Very good", "Good", "Fair", "Poor"), ordered = TRUE))
+```
+
+In 2002, which states were observed at 7 locations?
+
+``` r
+dist_loc_02 = filter(overall_health, year == 2002) %>% 
+  distinct(locationabbr, locationdesc)
+
+state_loc_7 = count(dist_loc_02, locationabbr) %>% 
+  filter(n == 7)
+state_loc_7$locationabbr
+```
+
+    ## [1] "CT" "FL" "NC"
+
+In 2002, the states were observed at 7 locations is CT, FL, NC.
+
+Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.
+
+``` r
+dist_loc = distinct(overall_health, year, locationabbr, locationdesc)
+
+dist_loc %>% 
+  ggplot(aes(x = year, color = locationabbr)) +
+  geom_freqpoly(binwidth = 1) +
+  scale_x_continuous(breaks = 2002:2010, limits = c(2002,2010))+
+  labs(
+    title = "The number of observations in each state from 2002 to 2010",
+    x = "Year",
+    y = "the number of observations in each state",
+    caption = "Data from the brfss_smart2010"
+  )
+```
+
+    ## Warning: Removed 102 rows containing missing values (geom_path).
+
+<img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-3-1.png" width="90%" />
+
+2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State
+
+``` r
+excellent_ny = filter(overall_health,
+                      year %in% c(2002, 2006, 2010), 
+                      response == "Excellent", 
+                      locationabbr == "NY") %>% 
+  group_by(year)
+
+ny_mean_sd = summarise(excellent_ny,
+                       excellent_mean = mean(data_value, na.rm = TRUE),
+                       excellent_sd = sd(data_value, na.rm = TRUE))
+ny_mean_sd
+```
+
+    ## # A tibble: 3 x 3
+    ##    year excellent_mean excellent_sd
+    ##   <int>          <dbl>        <dbl>
+    ## 1  2002           24.0         4.49
+    ## 2  2006           22.5         4.00
+    ## 3  2010           22.7         3.57
+
+each year and state, compute the average proportion and make a five-panel plot
+
+``` r
+response_table = subset(overall_health, select = c(year:locationdesc, response, data_value)) %>% 
+  group_by(response, year, locationabbr)
+
+response_mean = summarise(response_table,
+                          mean = mean(data_value, na.rm = TRUE))
+response_mean %>%  
+  ggplot(aes(x = year, y = mean, color = locationabbr)) +
+  geom_line() +
+  facet_wrap(vars(response), nrow = 5, scales = "free_y", switch = "y")+
+  labs(
+    title = "Response distribution of state-level averages from 2002-2010",
+    x = "Year",
+    y = "the average proportion in response category",
+    caption = "Data from the brfss_smart2010"
+  )
+```
+
+    ## Warning: 'switch' is deprecated.
+    ## Use 'strip.position' instead.
+    ## See help("Deprecated")
+
+<img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-5-1.png" width="90%" />
