@@ -9,3 +9,5 @@ Problem 1
 Problem 2
 
 1.load the data from the p8105.datasets package and summarize the data
+2.answer some questions.
+3.make plots and table.
