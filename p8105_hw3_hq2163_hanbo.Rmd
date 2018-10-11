@@ -153,10 +153,16 @@ apple_icecream = filter(instacart, product_name %in% c("Pink Lady Apples", "Coff
   spread(key = order_dow, value = mean )
 ```
 
+##Problem 3
 
+```{r}
+# load the data from the p8105.datasets package and summarize the data
+data(ny_noaa)
 
+summary(ny_noaa)
+```
 
-
-
-
+A short description of the dataset: ny_noaa provides some weather data in NY city, including the GHCN -Daily database of summary statistics from weather stations. The dataset contains 2595176 observations and 7 variables, where each row in the dataset is daily record of weather during 1981-2010.
+Key variables includes 1."date" is Date of observation 2."prcp" which represents Precipitation (tenths of mm) recorded by the weather station  on a specific day 3."snow" which represents Snowfall (mm) recorded by the weather station on a specific day 4."snwd": which represents Snow depth (mm) recorded by the weather station on a specific day 5."tmax" which represents the maximum temperature (tenths of degrees C) recorded by the weather station on a specific day 6."tmin" which represents the Minimum temperature (tenths of degrees C) recorded by the weather station on a specific day.
+There are missing data in variables: "prcp"(145838 NA), "snow"(381221 NA), "snwd"(591786 NA) and ."tmax","tmin". Each weather station collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data which might influence the result.
 
