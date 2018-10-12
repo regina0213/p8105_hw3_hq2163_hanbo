@@ -6,12 +6,11 @@ October 7, 2018
 Problem 1
 ---------
 
+Create an overall\_health dataset and focus on the “Overall Health” topic and organize responses as a factor taking levels from “Excellent” to “Poor”.
+======================================================================================================================================================
+
 ``` r
-#Use code "data(package = "p8105.datasets")" to find the name of target dataset and load it.
-
 data(brfss_smart2010)
-
-#Create an overall_health dataset and focus on the “Overall Health” topic and organize responses as a factor taking levels from “Excellent” to “Poor”.
 
 overall_health = janitor::clean_names(brfss_smart2010) %>% 
   filter(topic == "Overall Health") %>% 
@@ -21,33 +20,33 @@ overall_health = janitor::clean_names(brfss_smart2010) %>%
 In 2002, which states were observed at 7 locations?
 
 ``` r
-#Make a table with distinct location in 2002.
-dist_loc_02 = filter(overall_health, year == 2002) %>% 
-  distinct(locationabbr, locationdesc)
-
-#Make a table with distinct location in 2002.
-state_loc_7 = count(dist_loc_02, locationabbr) %>% 
-  filter(n == 7)
-state_loc_7$locationabbr
+#Make a table with distinct locations in 2002.
+filter(overall_health, year == 2002) %>% 
+  distinct(locationabbr, locationdesc) %>% 
+  count(locationabbr) %>% 
+  filter(n == 7) %>% 
+  knitr::kable(col.names = c("State", "No. of locations"))
 ```
 
-    ## [1] "CT" "FL" "NC"
+| State |  No. of locations|
+|:------|-----------------:|
+| CT    |                 7|
+| FL    |                 7|
+| NC    |                 7|
 
-In 2002, the states were observed at 7 locations is CT, FL, NC.
+The first column shows the states observed at 7 locations in 2002.
 
 Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.
 
 ``` r
-dist_loc = distinct(overall_health, year, locationabbr, locationdesc)
-
-dist_loc %>% 
+distinct(overall_health, year, locationabbr, locationdesc) %>% 
   ggplot(aes(x = year, color = locationabbr)) +
   geom_freqpoly(binwidth = 1) +
   scale_x_continuous(breaks = 2002:2010, limits = c(2002,2010)) +
   labs(
-    title = "The number of observations in each state from 2002 to 2010",
+    title = "The number of locations in each state from 2002 to 2010",
     x = "Year",
-    y = "No. of observations in each state",
+    y = "No. of locations",
     caption = "Data from the brfss_smart2010"
   ) +
   theme(legend.position="none")
@@ -55,7 +54,9 @@ dist_loc %>%
 
     ## Warning: Removed 102 rows containing missing values (geom_path).
 
-<img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-3-1.png" width="90%" /> The number of observations in State jumps to above 40 in 2007 and 2010. The number of observations all the other states kept under 20 for the rest of the years.
+<img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-3-1.png" width="90%" />
+
+The number of observations in State jumps to above 40 in 2007 and 2010. The number of observations all the other states kept under 20 for the rest of the years.
 
 The mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002, 2006, and 2010.
 
@@ -65,28 +66,26 @@ overall_health %>%
          response == "Excellent", 
          locationabbr == "NY") %>% 
   group_by(year) %>% 
-  summarise(excellent_mean = mean(data_value, na.rm = TRUE),
-            excellent_sd = sd(data_value, na.rm = TRUE))
+  summarise(mean = mean(data_value, na.rm = TRUE),
+            sd = sd(data_value, na.rm = TRUE)) %>% 
+  knitr::kable(col.names = c("Year", "Mean of excellent proportion(%)", "SD of excellent proportion(%)"),
+               digits = 2)
 ```
 
-    ## # A tibble: 3 x 3
-    ##    year excellent_mean excellent_sd
-    ##   <int>          <dbl>        <dbl>
-    ## 1  2002           24.0         4.49
-    ## 2  2006           22.5         4.00
-    ## 3  2010           22.7         3.57
+|  Year|  Mean of excellent proportion(%)|  SD of excellent proportion(%)|
+|-----:|--------------------------------:|------------------------------:|
+|  2002|                            24.04|                           4.49|
+|  2006|                            22.53|                           4.00|
+|  2010|                            22.70|                           3.57|
 
 The mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002 is 24% and 4.49%, in 2006 is 22.5% and 4%, in 2010 is 22.7% and 3.57%.
 
-each year and state, compute the average proportion and make a five-panel plot
+For each year and state, compute the average proportion and make a five-panel plot
 
 ``` r
-response_table = subset(overall_health, select = c(year:locationdesc, response, data_value)) %>% 
-  group_by(response, year, locationabbr)
-
-response_mean = summarise(response_table,
-                          mean = mean(data_value, na.rm = TRUE))
-response_mean %>%  
+select(overall_health, year, locationabbr, response, data_value) %>% 
+  group_by(response, year, locationabbr) %>% 
+  summarise(mean = mean(data_value, na.rm = TRUE)) %>%  
   ggplot(aes(x = year, y = mean, color = locationabbr)) +
   geom_line() +
   facet_grid(response ~., scales = "free_y")+
@@ -195,3 +194,75 @@ apple_icecream = filter(instacart, product_name %in% c("Pink Lady Apples", "Coff
   summarise(mean = round(mean(order_hour_of_day), 0)) %>% 
   spread(key = order_dow, value = mean )
 ```
+
+Problem 3
+---------
+
+``` r
+# load the data from the p8105.datasets package and summarize the data
+data(ny_noaa)
+
+summary(ny_noaa)
+```
+
+    ##       id                 date                 prcp         
+    ##  Length:2595176     Min.   :1981-01-01   Min.   :    0.00  
+    ##  Class :character   1st Qu.:1988-11-29   1st Qu.:    0.00  
+    ##  Mode  :character   Median :1997-01-21   Median :    0.00  
+    ##                     Mean   :1997-01-01   Mean   :   29.82  
+    ##                     3rd Qu.:2005-09-01   3rd Qu.:   23.00  
+    ##                     Max.   :2010-12-31   Max.   :22860.00  
+    ##                                          NA's   :145838    
+    ##       snow             snwd            tmax               tmin          
+    ##  Min.   :  -13    Min.   :   0.0   Length:2595176     Length:2595176    
+    ##  1st Qu.:    0    1st Qu.:   0.0   Class :character   Class :character  
+    ##  Median :    0    Median :   0.0   Mode  :character   Mode  :character  
+    ##  Mean   :    5    Mean   :  37.3                                        
+    ##  3rd Qu.:    0    3rd Qu.:   0.0                                        
+    ##  Max.   :10160    Max.   :9195.0                                        
+    ##  NA's   :381221   NA's   :591786
+
+A short description of the dataset: ny\_noaa provides some weather data in NY city, including the GHCN -Daily database of summary statistics from weather stations. The dataset contains 2595176 observations and 7 variables, where each row in the dataset is daily record of weather during 1981-2010. Key variables includes 1."date" is Date of observation 2."prcp" which represents Precipitation (tenths of mm) recorded by the weather station on a specific day 3."snow" which represents Snowfall (mm) recorded by the weather station on a specific day 4."snwd": which represents Snow depth (mm) recorded by the weather station on a specific day 5."tmax" which represents the maximum temperature (tenths of degrees C) recorded by the weather station on a specific day 6."tmin" which represents the Minimum temperature (tenths of degrees C) recorded by the weather station on a specific day. There are missing data in variables: "prcp"(145838 NA), "snow"(381221 NA), "snwd"(591786 NA) and ."tmax","tmin". Each weather station collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data which might influence the result.
+
+Do some data cleaning and create separate variables for year, month, and day.
+
+Convert observations for temperature, precipitation, and snowfall.
+
+``` r
+ny_noaa_ymd = separate(ny_noaa, date, into = c("year", "month", "day"), sep = "-") %>% 
+    mutate(prcp = prcp / 10, tmin = as.numeric(tmin) / 10, tmax = as.numeric(tmax) / 10)
+```
+
+For snowfall, what are the most commonly observed values? Why?
+
+``` r
+snowfall_daycount = count(ny_noaa, snow, sort = T)
+snowfall_daycount[1,1]
+```
+
+    ## # A tibble: 1 x 1
+    ##    snow
+    ##   <int>
+    ## 1     0
+
+Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+``` r
+temp_jan_jul = filter(ny_noaa_ymd, month %in% c("01","07")) %>% 
+  group_by(id, year, month) %>% 
+  summarise(mean_tmax = mean(tmax, na.rm = T)) %>%
+  ungroup() %>% 
+  mutate(month = recode(month, "01" = "Jan", "07" = "Jul"))
+
+ggplot(temp_jan_jul, aes(x = year, y = mean_tmax,fill = year)) +
+  geom_violin(color = "blue", alpha = 0.5) +
+  stat_summary(fun.y = median, geom = "point", color = "blue", size = 1) +
+  facet_grid(month ~., scales = "free_y") +
+  theme(legend.position = "none")
+```
+
+    ## Warning: Removed 5970 rows containing non-finite values (stat_ydensity).
+
+    ## Warning: Removed 5970 rows containing non-finite values (stat_summary).
+
+<img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-13-1.png" width="90%" />

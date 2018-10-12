@@ -166,3 +166,10 @@ A short description of the dataset: ny_noaa provides some weather data in NY cit
 Key variables includes 1."date" is Date of observation 2."prcp" which represents Precipitation (tenths of mm) recorded by the weather station  on a specific day 3."snow" which represents Snowfall (mm) recorded by the weather station on a specific day 4."snwd": which represents Snow depth (mm) recorded by the weather station on a specific day 5."tmax" which represents the maximum temperature (tenths of degrees C) recorded by the weather station on a specific day 6."tmin" which represents the Minimum temperature (tenths of degrees C) recorded by the weather station on a specific day.
 There are missing data in variables: "prcp"(145838 NA), "snow"(381221 NA), "snwd"(591786 NA) and ."tmax","tmin". Each weather station collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data which might influence the result.
 
+Do some data cleaning and create separate variables for year, month, and day.
+
+```{r}
+#Convert observations for temperature, precipitation, and snowfall.
+ny_noaa_ymd = separate(ny_noaa, date, into = c("year", "month", "day"), sep = "-") %>% 
+    mutate(prcp = prcp / 10, tmin = as.numeric(tmin) / 10, tmax = as.numeric(tmax) / 10)
+```
