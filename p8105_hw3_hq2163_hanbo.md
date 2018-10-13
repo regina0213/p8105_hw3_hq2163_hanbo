@@ -261,8 +261,4 @@ tmax_tmin + snow_fall + plot_layout(ncol = 1, heights = c(3, 1))
 
     ## Warning: Removed 1136276 rows containing non-finite values (stat_binhex).
 
-    ## Warning: Computation failed in `stat_binhex()`:
-    ## Package `hexbin` required for `stat_binhex`.
-    ## Please install and try again.
-
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-14-1.png" width="90%" />
