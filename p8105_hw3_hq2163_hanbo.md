@@ -6,24 +6,26 @@ October 7, 2018
 Problem 1
 ---------
 
-Create an overall\_health dataset and focus on the “Overall Health” topic and organize responses as a factor taking levels from “Excellent” to “Poor”.
-======================================================================================================================================================
+#### Create an overall\_health dataset and clean it
 
 ``` r
 data(brfss_smart2010)
 
 overall_health = janitor::clean_names(brfss_smart2010) %>% 
+  select(year, location_abbr = locationabbr, location_desc = locationdesc, everything()) %>%
   filter(topic == "Overall Health") %>% 
   mutate(response = factor(response, levels = c("Excellent", "Very good", "Good", "Fair", "Poor"), ordered = TRUE))
 ```
 
-In 2002, which states were observed at 7 locations?
+We first load the data. Then we format the variables to use appropriate names, focus on the “Overall Health” topic, and organize responses as a factor taking levels ordered from “Excellent” to “Poor”.
+
+#### Which states were observed at 7 locations in 2002?
 
 ``` r
 #Make a table with distinct locations in 2002.
 filter(overall_health, year == 2002) %>% 
-  distinct(locationabbr, locationdesc) %>% 
-  count(locationabbr) %>% 
+  distinct(location_abbr, location_desc) %>% 
+  count(location_abbr) %>% 
   filter(n == 7) %>% 
   knitr::kable(col.names = c("State", "No. of locations"))
 ```
@@ -36,11 +38,11 @@ filter(overall_health, year == 2002) %>%
 
 The first column shows the states observed at 7 locations in 2002.
 
-Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.
+#### Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.
 
 ``` r
-distinct(overall_health, year, locationabbr, locationdesc) %>% 
-  ggplot(aes(x = year, color = locationabbr)) +
+distinct(overall_health, year, location_abbr, location_desc) %>% 
+  ggplot(aes(x = year, color = location_abbr)) +
   geom_freqpoly(binwidth = 1) +
   scale_x_continuous(breaks = 2002:2010, limits = c(2002,2010)) +
   labs(
@@ -49,7 +51,7 @@ distinct(overall_health, year, locationabbr, locationdesc) %>%
     y = "No. of locations",
     caption = "Data from the brfss_smart2010"
   ) +
-  theme(legend.position="none")
+  theme(legend.position = "none")
 ```
 
     ## Warning: Removed 102 rows containing missing values (geom_path).
@@ -58,13 +60,13 @@ distinct(overall_health, year, locationabbr, locationdesc) %>%
 
 The number of observations in State jumps to above 40 in 2007 and 2010. The number of observations all the other states kept under 20 for the rest of the years.
 
-The mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002, 2006, and 2010.
+#### Showing the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002, 2006, and 2010.
 
 ``` r
 overall_health %>% 
   filter(year %in% c(2002, 2006, 2010), 
          response == "Excellent", 
-         locationabbr == "NY") %>% 
+         location_abbr == "NY") %>% 
   group_by(year) %>% 
   summarise(mean = mean(data_value, na.rm = TRUE),
             sd = sd(data_value, na.rm = TRUE)) %>% 
@@ -78,122 +80,91 @@ overall_health %>%
 |  2006|                            22.53|                           4.00|
 |  2010|                            22.70|                           3.57|
 
-The mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002 is 24% and 4.49%, in 2006 is 22.5% and 4%, in 2010 is 22.7% and 3.57%.
-
-For each year and state, compute the average proportion and make a five-panel plot
+#### For each year and state, compute the average proportion and make a five-panel plot.
 
 ``` r
-select(overall_health, year, locationabbr, response, data_value) %>% 
-  group_by(response, year, locationabbr) %>% 
-  summarise(mean = mean(data_value, na.rm = TRUE)) %>%  
-  ggplot(aes(x = year, y = mean, color = locationabbr)) +
-  geom_line() +
-  facet_grid(response ~., scales = "free_y")+
+select(overall_health, year, location_abbr, response, data_value) %>% 
+  group_by(response, year, location_abbr) %>% 
+  summarise(mean = mean(data_value, na.rm = TRUE)) %>% 
+  ungroup %>% 
+  mutate(year = as.factor(year)) %>% 
+  ggplot(aes(x = year, y = mean)) +
+  geom_dotplot(binaxis="y", stackdir = "center", stackratio = 2) +
+  facet_grid(response ~., scales = "free_y") +
   labs(
     title = "Response distribution of state-level averages from 2002-2010",
     x = "Year",
-    y = "The average proportion of each state in response category",
+    y = "The average proportion of response",
     caption = "Data from the brfss_smart2010"
-  ) +
-  theme(legend.position = "none")
+  )
 ```
+
+    ## `stat_bindot()` using `bins = 30`. Pick better value with `binwidth`.
 
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-5-1.png" width="90%" />
 
 Problem 2
 ---------
 
+#### Load the data from the p8105.datasets package:
+
 ``` r
-# load the data from the p8105.datasets package and summarize the data
 data(instacart)
-summary(instacart)
 ```
 
-    ##     order_id         product_id    add_to_cart_order   reordered     
-    ##  Min.   :      1   Min.   :    1   Min.   : 1.000    Min.   :0.0000  
-    ##  1st Qu.: 843370   1st Qu.:13380   1st Qu.: 3.000    1st Qu.:0.0000  
-    ##  Median :1701880   Median :25298   Median : 7.000    Median :1.0000  
-    ##  Mean   :1706298   Mean   :25556   Mean   : 8.758    Mean   :0.5986  
-    ##  3rd Qu.:2568023   3rd Qu.:37940   3rd Qu.:12.000    3rd Qu.:1.0000  
-    ##  Max.   :3421070   Max.   :49688   Max.   :80.000    Max.   :1.0000  
-    ##     user_id         eval_set          order_number      order_dow    
-    ##  Min.   :     1   Length:1384617     Min.   :  4.00   Min.   :0.000  
-    ##  1st Qu.: 51732   Class :character   1st Qu.:  6.00   1st Qu.:1.000  
-    ##  Median :102933   Mode  :character   Median : 11.00   Median :3.000  
-    ##  Mean   :103113                      Mean   : 17.09   Mean   :2.701  
-    ##  3rd Qu.:154959                      3rd Qu.: 21.00   3rd Qu.:5.000  
-    ##  Max.   :206209                      Max.   :100.00   Max.   :6.000  
-    ##  order_hour_of_day days_since_prior_order product_name      
-    ##  Min.   : 0.00     Min.   : 0.00          Length:1384617    
-    ##  1st Qu.:10.00     1st Qu.: 7.00          Class :character  
-    ##  Median :14.00     Median :15.00          Mode  :character  
-    ##  Mean   :13.58     Mean   :17.07                            
-    ##  3rd Qu.:17.00     3rd Qu.:30.00                            
-    ##  Max.   :23.00     Max.   :30.00                            
-    ##     aisle_id     department_id      aisle            department       
-    ##  Min.   :  1.0   Min.   : 1.00   Length:1384617     Length:1384617    
-    ##  1st Qu.: 31.0   1st Qu.: 4.00   Class :character   Class :character  
-    ##  Median : 83.0   Median : 8.00   Mode  :character   Mode  :character  
-    ##  Mean   : 71.3   Mean   : 9.84                                        
-    ##  3rd Qu.:107.0   3rd Qu.:16.00                                        
-    ##  Max.   :134.0   Max.   :21.00
+#### Write a short description of the dataset:
 
-A short description of the dataset: Instacart is an online grocery service that allows you to shop online from local stores. The dataset contains 1,384,617 observations and 15variables of 131,209 unique users, where each row in the dataset is an order about product information. Key variables includes 1."order\_dow":the day of the week on which the order was placed. It can help us to analyse which kind of products are sold best at what time and then Instacart could get the info of promoting at that day 2.order\_hour\_of\_day: the hour of the day on which the order was placed.Like we can analyze when to promote specific products 3.product\_name: name of the product. 4.aisle: the name of the aisle
+Instacart is an online grocery service that allows you to shop online from local stores. The dataset contains 1384617 observations and 15 variables of 131209 users. Each row in the dataset shows the information of a specific product in one order. Some key variables are user\_id and order\_id, by which we can identify each user and order. Product\_id/product\_name, aisle\_id/aisle, department\_id/department are key variables for product. The most important variables are reordered, order\_number, order\_dow, order\_hour\_of\_day, days\_since\_prior\_order, they can help us understand the customers' purchasing and consumption behaviour.
 
-How many aisles are there, and which aisles are the most items ordered from?
+#### How many aisles are there, and which aisles are the most items ordered from?
+
+There are 134 aisles.
 
 ``` r
-dist_aisle = distinct(instacart, aisle_id)
-n_aisle = nrow(dist_aisle)
-
 item_aisle = count(instacart, aisle_id, sort = T)
-item_aisle[1,1]
 ```
 
-    ## # A tibble: 1 x 1
-    ##   aisle_id
-    ##      <int>
-    ## 1       83
+No. 83 is the most items ordered aisle.
 
-There are 134 aisles and 83is the most items ordered from.
+#### Make a plot that shows the number of items ordered in each aisle.
 
-Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.
-
-Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+#### Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.
 
 ``` r
-three_aisle = filter(instacart, aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
-  count(product_name)
-
-product_aisle = select(instacart, product_name, aisle) %>% 
-  distinct(product_name, .keep_all = T)
-
-com_aisle_product = left_join(three_aisle, product_aisle, by = "product_name") %>% 
-  group_by(aisle) %>% 
+filter(instacart, aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
+  group_by(aisle, product_name) %>% 
+  summarise(n = n()) %>% 
   filter(min_rank(desc(n)) == 1) %>% 
   select(aisle, product_name) %>% 
-  arrange(aisle)
-
-names(com_aisle_product)[1:2] = c("Aisle", "Most popular product")
-com_aisle_product
+  arrange(aisle) %>% 
+  knitr::kable(col.names = c("Aisle", "Most popular product"))
 ```
 
-    ## # A tibble: 3 x 2
-    ## # Groups:   aisle [3]
-    ##   Aisle                      `Most popular product`                       
-    ##   <chr>                      <chr>                                        
-    ## 1 baking ingredients         Light Brown Sugar                            
-    ## 2 dog food care              Snack Sticks Chicken & Rice Recipe Dog Treats
-    ## 3 packaged vegetables fruits Organic Baby Spinach
+| Aisle                      | Most popular product                          |
+|:---------------------------|:----------------------------------------------|
+| baking ingredients         | Light Brown Sugar                             |
+| dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats |
+| packaged vegetables fruits | Organic Baby Spinach                          |
 
-Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+#### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week.
 
 ``` r
-apple_icecream = filter(instacart, product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+filter(instacart, product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
   group_by(product_name, order_dow) %>% 
   summarise(mean = round(mean(order_hour_of_day), 0)) %>% 
-  spread(key = order_dow, value = mean )
+  mutate(mean = as.character(mean),
+         mean = paste(mean, ":00", sep = "")) %>% 
+  spread(key = order_dow, value = mean ) %>% 
+  knitr::kable(caption = "The mean hour of the day",
+               col.names = c("Product", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"))
 ```
+
+| Product          | Sun   | Mon   | Tue   | Wed   | Thu   | Fri   | Sat   |
+|:-----------------|:------|:------|:------|:------|:------|:------|:------|
+| Coffee Ice Cream | 14:00 | 14:00 | 15:00 | 15:00 | 15:00 | 12:00 | 14:00 |
+| Pink Lady Apples | 13:00 | 11:00 | 12:00 | 14:00 | 12:00 | 13:00 | 12:00 |
+
+The above table shows the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. As the data does not specify the meaning of values in order\_dow variable, I presume that the values of 0~6 represent Sunday to Saturday.
 
 Problem 3
 ---------
