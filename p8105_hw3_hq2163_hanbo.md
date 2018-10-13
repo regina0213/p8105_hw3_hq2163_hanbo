@@ -169,67 +169,61 @@ The above table shows the mean hour of the day at which Pink Lady Apples and Cof
 Problem 3
 ---------
 
-``` r
-# load the data from the p8105.datasets package and summarize the data
-data(ny_noaa)
+**Load the data**
 
-summary(ny_noaa)
+``` r
+data(ny_noaa)
 ```
 
-    ##       id                 date                 prcp         
-    ##  Length:2595176     Min.   :1981-01-01   Min.   :    0.00  
-    ##  Class :character   1st Qu.:1988-11-29   1st Qu.:    0.00  
-    ##  Mode  :character   Median :1997-01-21   Median :    0.00  
-    ##                     Mean   :1997-01-01   Mean   :   29.82  
-    ##                     3rd Qu.:2005-09-01   3rd Qu.:   23.00  
-    ##                     Max.   :2010-12-31   Max.   :22860.00  
-    ##                                          NA's   :145838    
-    ##       snow             snwd            tmax               tmin          
-    ##  Min.   :  -13    Min.   :   0.0   Length:2595176     Length:2595176    
-    ##  1st Qu.:    0    1st Qu.:   0.0   Class :character   Class :character  
-    ##  Median :    0    Median :   0.0   Mode  :character   Mode  :character  
-    ##  Mean   :    5    Mean   :  37.3                                        
-    ##  3rd Qu.:    0    3rd Qu.:   0.0                                        
-    ##  Max.   :10160    Max.   :9195.0                                        
-    ##  NA's   :381221   NA's   :591786
+**Write a short description of the dataset:**
 
-A short description of the dataset: ny\_noaa provides some weather data in NY city, including the GHCN -Daily database of summary statistics from weather stations. The dataset contains 2595176 observations and 7 variables, where each row in the dataset is daily record of weather during 1981-2010. Key variables includes 1."date" is Date of observation 2."prcp" which represents Precipitation (tenths of mm) recorded by the weather station on a specific day 3."snow" which represents Snowfall (mm) recorded by the weather station on a specific day 4."snwd": which represents Snow depth (mm) recorded by the weather station on a specific day 5."tmax" which represents the maximum temperature (tenths of degrees C) recorded by the weather station on a specific day 6."tmin" which represents the Minimum temperature (tenths of degrees C) recorded by the weather station on a specific day. There are missing data in variables: "prcp"(145838 NA), "snow"(381221 NA), "snwd"(591786 NA) and ."tmax","tmin". Each weather station collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data which might influence the result.
+The ny\_noaa data provides weather records in NY state during 1981-2010. It contains 2595176 observations and 7 variables, where each row records the weather records of a certain day observed in a certain sation. The key variables include `prcp`, `snow`, `snwd`, `tmax`, and `tmin`, which represent precipitation, snowfall, snow depth, maximum temperature, and minimun temperature, respectively. `prcp`, `snow` and `snwd` are all `integer` class variables, while `tmax` and `tmin` are `character` variables.
 
-Do some data cleaning and create separate variables for year, month, and day.
+The proportion of missing values in some variables are 0.056 for `prcp`, 0.15 for `snow`, 0.23 for `snwd`, 0.44 for `tmax`, and 0.44 for `tmin`. Each weather station collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data which might influence the result.
 
-Convert observations for temperature, precipitation, and snowfall.
+**Do some data cleaning:**
 
 ``` r
 ny_noaa_ymd = separate(ny_noaa, date, into = c("year", "month", "day"), sep = "-") %>% 
     mutate(prcp = prcp / 10, tmin = as.numeric(tmin) / 10, tmax = as.numeric(tmax) / 10)
 ```
 
-For snowfall, what are the most commonly observed values? Why?
+We separate `date` to three variables (`year`, `month`, `day`), and convert observations for `prcp`, `tmax` and `tmin` to reasonable units.
+
+**For snowfall, what are the most commonly observed values? Why?**
 
 ``` r
 snowfall_daycount = count(ny_noaa, snow, sort = T)
-snowfall_daycount[1,1]
+head(snowfall_daycount, 3)
 ```
 
-    ## # A tibble: 1 x 1
-    ##    snow
-    ##   <int>
-    ## 1     0
+    ## # A tibble: 3 x 2
+    ##    snow       n
+    ##   <int>   <int>
+    ## 1     0 2008508
+    ## 2    NA  381221
+    ## 3    25   31022
 
-Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+From the above table, we find the most observed values for snowfall is 0 mm. The reason is that there is no snow fall in most days in NY.
+
+**Make a two-panel plot showing the average max temperature in January and in July in each station across years:**
 
 ``` r
-temp_jan_jul = filter(ny_noaa_ymd, month %in% c("01","07")) %>% 
+filter(ny_noaa_ymd, month %in% c("01","07")) %>%
+  mutate(month = recode(month, "01" = "Jan", "07" = "Jul")) %>% 
   group_by(id, year, month) %>% 
   summarise(mean_tmax = mean(tmax, na.rm = T)) %>%
-  ungroup() %>% 
-  mutate(month = recode(month, "01" = "Jan", "07" = "Jul"))
-
-ggplot(temp_jan_jul, aes(x = year, y = mean_tmax,fill = year)) +
-  geom_violin(color = "blue", alpha = 0.5) +
-  stat_summary(fun.y = median, geom = "point", color = "blue", size = 1) +
+  ggplot(aes(x = year, y = mean_tmax)) +
+  geom_violin(color = "black", fill = "blue", alpha = 0.4) +
+  stat_summary(fun.y = median, geom = "point", color = "black", size = 1.5) +
+  scale_x_discrete(breaks = c("1981", "1986", "1991", "1996", "2001", "2006", "2010")) +
   facet_grid(month ~., scales = "free_y") +
-  theme(legend.position = "none")
+  labs(
+    title = "Average maximum temperature in Jan and in Jul in each station",
+    x = "Year",
+    y = "Average maximum daily temperature (C)",
+    caption = "Data from the NY NOAA"
+  )
 ```
 
     ## Warning: Removed 5970 rows containing non-finite values (stat_ydensity).
@@ -237,3 +231,38 @@ ggplot(temp_jan_jul, aes(x = year, y = mean_tmax,fill = year)) +
     ## Warning: Removed 5970 rows containing non-finite values (stat_summary).
 
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-13-1.png" width="90%" />
+
+**Make a two-panel plot (i) `tmax` vs `tmin` for the full dataset; and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year:**
+
+``` r
+tmax_tmin = ggplot(ny_noaa_ymd, aes(x = tmin, y = tmax)) + 
+  geom_hex(bins = 40) +
+  labs(
+    title = "Maximum temperature vs minimum temperature",
+    x = "Minimum temperature (C)",
+    y = "Maximum temperature (C)"
+  ) +
+  coord_fixed() +
+  theme(legend.position = "right")
+
+snow_fall = filter(ny_noaa_ymd, snow > 0, snow <100) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_boxplot() +
+  scale_x_discrete(breaks = c("1981", "1986", "1991", "1996", "2001", "2006", "2010")) +
+  labs(
+    title = "The distribution of snowfall in each year",
+    x = "Year",
+    y = "Snow fall (mm)",
+    caption = "Data from the NY NOAA"
+  )  
+
+tmax_tmin + snow_fall + plot_layout(ncol = 1, heights = c(3, 1))
+```
+
+    ## Warning: Removed 1136276 rows containing non-finite values (stat_binhex).
+
+    ## Warning: Computation failed in `stat_binhex()`:
+    ## Package `hexbin` required for `stat_binhex`.
+    ## Please install and try again.
+
+<img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-14-1.png" width="90%" />
