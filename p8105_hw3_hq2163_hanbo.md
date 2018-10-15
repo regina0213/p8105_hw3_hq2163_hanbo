@@ -35,9 +35,9 @@ filter(overall_health, year == 2002) %>%
 | FL    |                 7|
 | NC    |                 7|
 
-The first column shows the states observed at 7 locations in 2002.
+The first column of the above table shows the states observed at 7 locations in 2002.
 
-**Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010:**
+**Make a “spaghetti plot” that shows the number of locations in each state from 2002 to 2010:**
 
 ``` r
 distinct(overall_health, year, location_abbr, location_desc) %>% 
@@ -57,7 +57,7 @@ distinct(overall_health, year, location_abbr, location_desc) %>%
 
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-3-1.png" width="90%" />
 
-The number of observations in State jumps to above 40 in 2007 and 2010. The number of observations all the other states kept under 20 for the rest of the years.
+The above plot is really like a bowl of twisted spaghetti. As the lines entangled together, it is hard for us to find sufficient information. All we can find in this plot are that the numbers of locations in most states are less than 10, and there is a state (shown in yellow line) has over 40 locations observed in 2007 and 2010.
 
 **Showing the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State in 2002, 2006, and 2010:**
 
@@ -79,6 +79,8 @@ overall_health %>%
 |  2006|                            22.53|                           4.00|
 |  2010|                            22.70|                           3.57|
 
+The above table shows the mean and standard deviation of the proportion of "Excellent" responses across locations in NY State in 2002, 2006, and 2010. All the values are rounded off to 2 decimal places.
+
 **For each year and state, compute the average proportion and make a five-panel plot:**
 
 ``` r
@@ -88,19 +90,20 @@ select(overall_health, year, location_abbr, response, data_value) %>%
   ungroup %>% 
   mutate(year = as.factor(year)) %>% 
   ggplot(aes(x = year, y = mean)) +
-  geom_dotplot(binaxis="y", stackdir = "center", stackratio = 2) +
+  geom_boxplot(width = 0.3) +
   facet_grid(response ~., scales = "free_y") +
   labs(
-    title = "Response distribution of state-level averages from 2002-2010",
+    title = "Distribution of state-level average proportions
+   in each response category from 2002-2010",
     x = "Year",
     y = "The average proportion of response",
     caption = "Data from the brfss_smart2010"
   )
 ```
 
-    ## `stat_bindot()` using `bins = 30`. Pick better value with `binwidth`.
-
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-5-1.png" width="90%" />
+
+We use a 5-panels box plot to show the distribution of average proportion in each response category for each year and state. From the plot, we can see the state-level average proportions did not changed significantly, although there exists some outliers.
 
 Problem 2
 ---------
@@ -120,18 +123,23 @@ Instacart is an online grocery service that allows you to shop online from local
 There are 134 aisles.
 
 ``` r
-item_aisle = count(instacart, aisle_id, sort = T)
-head(item_aisle, 3)
+item_aisle = instacart %>% 
+  group_by(aisle_id, aisle) %>% 
+  summarise(n= n()) %>% 
+  arrange(desc(n)) %>% 
+  head(5) 
+knitr::kable(item_aisle, col.names = c("Aisle ID", "Aisle Name", "n"))
 ```
 
-    ## # A tibble: 3 x 2
-    ##   aisle_id      n
-    ##      <int>  <int>
-    ## 1       83 150609
-    ## 2       24 150473
-    ## 3      123  78493
+|  Aisle ID| Aisle Name                 |       n|
+|---------:|:---------------------------|-------:|
+|        83| fresh vegetables           |  150609|
+|        24| fresh fruits               |  150473|
+|       123| packaged vegetables fruits |   78493|
+|       120| yogurt                     |   55240|
+|        21| packaged cheese            |   41699|
 
-From the above table, we can see No. 83 is the most items ordered aisle.
+From the above table, we can see No. 83 fresh vegetables aisle is the most items ordered aisle.
 
 **Make a plot that shows the number of items ordered in each aisle:**
 
@@ -155,7 +163,9 @@ instacart %>%
 
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-8-1.png" width="90%" />
 
-**Make a table showing the most popular item aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`:**
+The above plot shows the number of items ordered in each aisle. As there are 134 aisles, it is really hard to show all of them in one plot. So we use `facet_wrap` function to organize aisles by departments. We recruit a log scale on y axis because the numbers span several orders of magnitude.
+
+**Make a table showing the most popular item in each of the aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`:**
 
 ``` r
 filter(instacart, aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
@@ -172,6 +182,8 @@ filter(instacart, aisle %in% c("baking ingredients", "dog food care", "packaged 
 | baking ingredients         | Light Brown Sugar                             |
 | dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats |
 | packaged vegetables fruits | Organic Baby Spinach                          |
+
+The above table shows the most popular product in `baking ingredients`, `dog food care`, and `packaged vegetables fruits` aisles.
 
 **Make a table showing the mean hour of the day at which `Pink Lady Apples` and `Coffee Ice Cream` are ordered on each day of the week:**
 
@@ -190,12 +202,12 @@ filter(instacart, product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %
 | Coffee Ice Cream | 14:00 | 14:00 | 15:00 | 15:00 | 15:00 | 12:00 | 14:00 |
 | Pink Lady Apples | 13:00 | 11:00 | 12:00 | 14:00 | 12:00 | 13:00 | 12:00 |
 
-The above table shows the mean hour of the day at which `Pink Lady Apples` and `Coffee Ice Cream` are ordered on each day of the week. As the data does not specify the meaning of values in order\_dow variable, I presume that the values of 0~6 represent Sunday to Saturday.
+The above table shows the mean hour of the day at which `Pink Lady Apples` and `Coffee Ice Cream` are ordered on each day of the week. As the data does not specify the meaning of values in order\_dow variable, we assume that the values of 0~6 represent Sunday to Saturday.
 
 Problem 3
 ---------
 
-**Load the data**
+**Load the data from the `p8105.datasets` package:**
 
 ``` r
 data(ny_noaa)
@@ -203,9 +215,9 @@ data(ny_noaa)
 
 **Write a short description of the dataset:**
 
-The ny\_noaa data provides weather records in NY state during 1981-2010. It contains 2595176 observations and 7 variables, where each row records the weather records of a certain day observed in a certain sation. The key variables include `prcp`, `snow`, `snwd`, `tmax`, and `tmin`, which represent precipitation, snowfall, snow depth, maximum temperature, and minimun temperature, respectively. `prcp`, `snow` and `snwd` are all `integer` class variables, while `tmax` and `tmin` are `character` variables.
+The ny\_noaa data provides weather records in NY state during 1981-2010. It contains 2595176 observations and 7 variables, where each row records the weather records of a certain day observed in a certain sation. The key variables include `prcp`, `snow`, `snwd`, `tmax`, and `tmin`, which represent precipitation, snowfall, snow depth, maximum temperature, and minimun temperature, respectively. `prcp`, `snow` and `snwd` are all `Integer` class variables, while `tmax` and `tmin` are `Character` variables.
 
-The proportion of missing values in some variables are 0.056 for `prcp`, 0.15 for `snow`, 0.23 for `snwd`, 0.44 for `tmax`, and 0.44 for `tmin`. Each weather station collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data which might influence the result.
+The proportion of missing values in some variables are 0.056 for `prcp`, 0.15 for `snow`, 0.23 for `snwd`, 0.44 for `tmax`, and 0.44 for `tmin`. Other than `prcp`, the proportions of missing values in other four variables are all over 10%. For `tmax` and `tmin`, the proportion are over 40%. So we think the dataset contains such extensive missing data would influence the analysis significantly.
 
 **Do some data cleaning:**
 
@@ -219,18 +231,20 @@ We separate `date` to three variables (`year`, `month`, `day`), and convert obse
 **For snowfall, what are the most commonly observed values? Why?**
 
 ``` r
-snowfall_daycount = count(ny_noaa, snow, sort = T)
-head(snowfall_daycount, 3)
+snowfall_daycount = count(ny_noaa, snow, sort = T) %>% 
+  head(5)
+knitr::kable(snowfall_daycount, col.names = c("Snowfall (mm)", "No. of observations"))
 ```
 
-    ## # A tibble: 3 x 2
-    ##    snow       n
-    ##   <int>   <int>
-    ## 1     0 2008508
-    ## 2    NA  381221
-    ## 3    25   31022
+|  Snowfall (mm)|  No. of observations|
+|--------------:|--------------------:|
+|              0|              2008508|
+|             NA|               381221|
+|             25|                31022|
+|             13|                23095|
+|             51|                18274|
 
-From the above table, we find the most observed values for snowfall is 0 mm. The reason is that there is no snow fall in most days in NY.
+From the above table, we find the most observed values for snowfall is 0 mm. We thought is is because there is no snowfall in most days in NY.
 
 **Make a two-panel plot showing the average max temperature in January and in July in each station across years:**
 
@@ -240,12 +254,12 @@ filter(ny_noaa_ymd, month %in% c("01","07")) %>%
   group_by(id, year, month) %>% 
   summarise(mean_tmax = mean(tmax, na.rm = T)) %>%
   ggplot(aes(x = year, y = mean_tmax)) +
-  geom_violin(color = "black", fill = "blue", alpha = 0.4) +
-  stat_summary(fun.y = median, geom = "point", color = "black", size = 1.5) +
+  geom_violin(color = "black", fill = "grey", alpha = 0.5) +
+  geom_boxplot(width = 0.3) +
   scale_x_discrete(breaks = c("1981", "1986", "1991", "1996", "2001", "2006", "2010")) +
   facet_grid(month ~., scales = "free_y") +
   labs(
-    title = "Average maximum temperature in Jan and in Jul in each station",
+    title = "Average maximum temperature in each station",
     x = "Year",
     y = "Average maximum daily temperature (C)",
     caption = "Data from the NY NOAA"
@@ -254,26 +268,28 @@ filter(ny_noaa_ymd, month %in% c("01","07")) %>%
 
     ## Warning: Removed 5970 rows containing non-finite values (stat_ydensity).
 
-    ## Warning: Removed 5970 rows containing non-finite values (stat_summary).
+    ## Warning: Removed 5970 rows containing non-finite values (stat_boxplot).
 
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-14-1.png" width="90%" />
+
+We use a two-panel violin plot to shows the average maximum temperature in January and in July in each station across years. The violin layer shows the probability distribution of the average maximum temperature in each station, and the box layer indicates the medians, quartiles, and outliers in the plot. From the plot, we can see that all the distributions follow the normal distribution. The mean values of average maximum temperature in each station fluctuated from -5 ℃ to 5 ℃ in Januray, and 24 ℃ to 29 ℃ in July. There exist plenty of outliers in the plot. For example, the average maximum temperature of one station in July 1987 was below 15 ℃，while the median was near 30 ℃.
 
 **Make a two-panel plot (i) `tmax` vs `tmin` for the full dataset; and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year:**
 
 ``` r
 tmax_tmin = ggplot(ny_noaa_ymd, aes(x = tmin, y = tmax)) + 
-  geom_hex(bins = 40) +
+  geom_bin2d(bins = 40) +
   labs(
     title = "Maximum temperature vs minimum temperature",
     x = "Minimum temperature (C)",
     y = "Maximum temperature (C)"
   ) +
-  coord_fixed() +
-  theme(legend.position = "right")
+  coord_fixed()
 
 snow_fall = filter(ny_noaa_ymd, snow > 0, snow <100) %>% 
   ggplot(aes(x = year, y = snow)) +
-  geom_boxplot() +
+  geom_violin(color = "black", fill = "grey") +
+  geom_boxplot(width = 0.2) +
   scale_x_discrete(breaks = c("1981", "1986", "1991", "1996", "2001", "2006", "2010")) +
   labs(
     title = "The distribution of snowfall in each year",
@@ -285,6 +301,10 @@ snow_fall = filter(ny_noaa_ymd, snow > 0, snow <100) %>%
 tmax_tmin + snow_fall + plot_layout(ncol = 1, heights = c(3, 1))
 ```
 
-    ## Warning: Removed 1136276 rows containing non-finite values (stat_binhex).
+    ## Warning: Removed 1136276 rows containing non-finite values (stat_bin2d).
 
 <img src="p8105_hw3_hq2163_hanbo_files/figure-markdown_github/unnamed-chunk-15-1.png" width="90%" />
+
+The upper plot shows the maximum temperature VS minimum temperature for the full dataset. As there are 1458900 records in all, we use `geom_bin2d` function to make a heatmap instead of a traditional scatterplot.
+
+The lower violin plot shows the distribution of snowfall in each year. The violin layer shows the most values of observations are under 30 or around 50. The box layer indicates that the median values of each years are about 25.
